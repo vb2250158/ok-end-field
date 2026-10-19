@@ -14,6 +14,7 @@ class DailyLiaisonFeature:
     lang: LangAccessor
     HELP_LINK = "https://cnb.cool/ok-oldking/ok-ef-update/-/blob/main/docs/日常任务.md"
     CFG_PRIORITY_GIFT_TARGET = "优先送礼对象"
+    CFG_ONLY_PRIORITY_GIFT_TARGET = "仅向优先对象送礼"
     CFG_GIFT_MAX_RETRY = "送礼任务最多尝试次数"
 
     def __init__(self, task):
@@ -36,6 +37,7 @@ class DailyLiaisonFeature:
                 "⭐帝江号一键存放": False,
                 self.CFG_GIFT_MAX_RETRY: 2,
                 self.CFG_PRIORITY_GIFT_TARGET: all_list[0],
+                self.CFG_ONLY_PRIORITY_GIFT_TARGET: False,
             }
         )
         self._task.config_description.update(
@@ -55,7 +57,7 @@ class DailyLiaisonFeature:
         )
         self._task.default_config_group.update(
             {
-                "⭐送礼": [self.CFG_GIFT_MAX_RETRY, "一次送礼个数", self.CFG_PRIORITY_GIFT_TARGET],
+                "⭐送礼": [self.CFG_GIFT_MAX_RETRY, "一次送礼个数", self.CFG_PRIORITY_GIFT_TARGET, self.CFG_ONLY_PRIORITY_GIFT_TARGET],
             }
         )
 

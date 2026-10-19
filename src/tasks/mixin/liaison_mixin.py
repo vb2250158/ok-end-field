@@ -18,6 +18,7 @@ LiaisonMixin
 """
 
 import random
+import re
 
 from src.data.characters import characters
 from src.data.characters_utils import get_contact_list_with_feature_list, get_localized_name_by_canonical
@@ -254,6 +255,9 @@ class LiaisonMixin(NavigationMixin):
                 pass
         target_feature_name = self._resolve_contact_feature_name(target_name)
         if not target_feature_name:
+            if self.config.get("仅向优先对象送礼", False):
+                self.log_info(f"指定送礼对象 {target_name} 未被识别，禁止替换对象")
+                return False
             self.log_info(f"未识别联络对象 {target_name}，改用默认联络对象")
             target_name = next(iter(self.can_contact_dict.keys()), None)
             if not target_name:
@@ -287,6 +291,9 @@ class LiaisonMixin(NavigationMixin):
                 self.wait_ui_stable(refresh_interval=0.5)
 
             if not found_target:
+                if self.config.get("仅向优先对象送礼", False):
+                    self.log_info(f"未找到指定送礼对象 {target_name}，禁止替换对象")
+                    return False
                 self.ensure_main()
                 self.press_key("f")
                 self.wait_ui_stable(refresh_interval=1)
@@ -429,6 +436,15 @@ class LiaisonMixin(NavigationMixin):
     def _finish_give_gift_after_clicked(self):
         """在已点击『赠送』后，完成选礼与确认赠送流程。"""
         self.wait_feature(feature=fL.map_filter_icon, box=self.box_of_screen(0.282, 0.907, 0.303, 0.937), time_out=5)
+        if self.config.get("仅向优先对象送礼", False):
+            target = str(self.config.get("优先送礼对象", "")).strip()
+            recipient_box = self.box_of_screen(0.75, 0.12, 1.0, 0.25)
+            if not target or not self.wait_ocr(
+                match=re.compile(rf"^{re.escape(target)}$"), box=recipient_box,
+                time_out=2, raise_if_not_found=False,
+            ):
+                self.log_info("未在赠送界面确认指定收礼人，禁止选择礼物或提交赠送")
+                return False
         for i in range(self.config.get("一次送礼个数", 2)):
             self.click(360 / 2560, 1150 / 1440, after_sleep=0.5)  # 点击礼物位置
         self.log_info("点击赠送礼物位置")
